@@ -5,6 +5,7 @@ import * as Babel from '@babel/standalone';
  */
 export function normalizeUserCode(rawCode) {
   let code = rawCode.trim();
+  if (!code) return '';
 
   // If import React is not explicitly present, add it
   if (!code.includes("from 'react'") && !code.includes('from "react"')) {
@@ -26,6 +27,14 @@ export function normalizeUserCode(rawCode) {
  * Transpiles JSX / Modern JS into standard ES modules using @babel/standalone
  */
 export function transpileReactCode(rawCode) {
+  if (!rawCode || rawCode.trim() === '') {
+    return {
+      transpiledCode: '',
+      error: null,
+      isEmpty: true
+    };
+  }
+
   try {
     const normalized = normalizeUserCode(rawCode);
     const result = Babel.transform(normalized, {
@@ -37,12 +46,14 @@ export function transpileReactCode(rawCode) {
 
     return {
       transpiledCode: result.code,
-      error: null
+      error: null,
+      isEmpty: false
     };
   } catch (err) {
     return {
       transpiledCode: null,
-      error: err.message
+      error: err.message,
+      isEmpty: false
     };
   }
 }
@@ -52,7 +63,41 @@ export function transpileReactCode(rawCode) {
  * or downloaded as a standalone HTML file.
  */
 export function generateSandboxHtml(transpiledCode) {
-  // Escape code safely for template insertion if needed
+  // If code is empty, return clean blank state page
+  if (!transpiledCode || transpiledCode.trim() === '') {
+    return `<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Canvas Blank</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-950 flex items-center justify-center p-6 text-slate-400 select-none">
+  <div class="max-w-md text-center space-y-4">
+    <div class="w-16 h-16 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto text-slate-500 shadow-2xl">
+      <svg class="w-8 h-8 text-blue-500/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+      </svg>
+    </div>
+    <div>
+      <h3 class="text-base font-bold text-slate-200">Canvas Siap Digunakan</h3>
+      <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+        Editor saat ini kosong. Silakan tulis atau tempel kode React JSX di form input untuk melihat hasil render di sini.
+      </p>
+    </div>
+  </div>
+</body>
+</html>`;
+  }
+
+  // Escape code safely for template insertion
   const codeBase64 = btoa(unescape(encodeURIComponent(transpiledCode)));
 
   return `<!DOCTYPE html>

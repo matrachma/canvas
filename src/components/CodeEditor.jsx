@@ -1,9 +1,13 @@
 import React, { useRef } from 'react';
 import Editor from '@monaco-editor/react';
-import { FileCode, Trash2, RotateCcw, Sparkles } from 'lucide-react';
-import { SIPGN_DASHBOARD_CODE } from '../templates/sampleCode';
+import { FileCode, Trash2, Bookmark } from 'lucide-react';
 
-export default function CodeEditor({ code, setCode, onRender }) {
+export default function CodeEditor({ 
+  code, 
+  setCode, 
+  onRender, 
+  onOpenSaveModal 
+}) {
   const editorRef = useRef(null);
 
   const handleEditorDidMount = (editor, monaco) => {
@@ -16,17 +20,14 @@ export default function CodeEditor({ code, setCode, onRender }) {
   };
 
   const handleClear = () => {
-    if (window.confirm('Hapus semua kode di editor?')) {
+    if (!code || code.trim() === '') return;
+    if (window.confirm('Kosongkan semua kode di editor?')) {
       setCode('');
     }
   };
 
-  const handleLoadSample = () => {
-    setCode(SIPGN_DASHBOARD_CODE);
-  };
-
-  const lineCount = code.split('\n').length;
-  const charCount = code.length;
+  const lineCount = code ? code.split('\n').length : 0;
+  const charCount = code ? code.length : 0;
 
   return (
     <div className="flex flex-col h-full bg-slate-950 border-r border-slate-800/80">
@@ -42,23 +43,27 @@ export default function CodeEditor({ code, setCode, onRender }) {
         </div>
 
         <div className="flex items-center space-x-2">
-          <button
-            onClick={handleLoadSample}
-            className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-            title="Muat Ulang Template SIPGN"
-          >
-            <RotateCcw className="w-3 h-3" />
-            <span className="hidden sm:inline">Reset Template</span>
-          </button>
+          {code && code.trim().length > 0 && (
+            <button
+              onClick={onOpenSaveModal}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 transition-colors cursor-pointer"
+              title="Simpan Kode Ini Sebagai Template"
+            >
+              <Bookmark className="w-3 h-3" />
+              <span>Simpan Template</span>
+            </button>
+          )}
 
-          <button
-            onClick={handleClear}
-            className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors"
-            title="Kosongkan Editor"
-          >
-            <Trash2 className="w-3 h-3" />
-            <span className="hidden sm:inline">Clear</span>
-          </button>
+          {code && code.trim().length > 0 && (
+            <button
+              onClick={handleClear}
+              className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors cursor-pointer"
+              title="Kosongkan Editor"
+            >
+              <Trash2 className="w-3 h-3" />
+              <span>Clear</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -92,8 +97,8 @@ export default function CodeEditor({ code, setCode, onRender }) {
       {/* Editor Footer Help Bar */}
       <div className="h-7 bg-slate-900/90 border-t border-slate-800/80 px-4 flex items-center justify-between text-[11px] text-slate-400 shrink-0">
         <div className="flex items-center gap-2">
-          <span className="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
-          <span>Sintaks JSX / React / Tailwind siap dijalankan</span>
+          <span className={`inline-block w-2 h-2 rounded-full ${code && code.trim() ? 'bg-emerald-400' : 'bg-slate-600'}`}></span>
+          <span>{code && code.trim() ? 'Sintaks JSX / React siap dijalankan' : 'Editor kosong — Tempel atau ketik kode'}</span>
         </div>
         <div className="hidden sm:flex items-center gap-1 text-slate-400">
           <span>Tekan</span>
